@@ -1,18 +1,9 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-// 사용자 인증 상태 관리 위한 컨텍스트
-// API 설정
-const API_URL = 'http://localhost:8083';
-axios.defaults.withCredentials = true; // 세션 기반 인증을 위한 설정
 
-// 인터셉터로 withCredentials 옵션이 적용되도록
-axios.interceptors.request.use(
-    config => {
-        config.withCredentials = true;
-        return config;
-    },
-    error => Promise.reject(error)
-);
+const API_URL = 'http://localhost:8083';
+
+const TOKEN_KEY = 'auth_token';
 
 const AuthContext = createContext();
 
@@ -27,51 +18,43 @@ export function AuthProvider({ children }) {
 
     // 컴포넌트 마운트 시 로그인 상태 확인
     useEffect(() => {
-        checkAuthStatus();
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+            checkAuthStatus();
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     async function checkAuthStatus() {
         try {
-            const response = await axios.get(`${API_URL}/api/users/me`, {
-                withCredentials: true
-            });
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (!token) {
+                setCurrentUser(null);
+                setLoading(false);
+                return;
+            }
+
+            // 토큰을 헤더에 추가
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+
+            const response = await axios.get(`${API_URL}/api/users/me`, config);
             if (response.status === 200) {
                 setCurrentUser(response.data);
             }
         } catch (error) {
-            console.log('인증 확인 중 오류:', error.response?.status);
-            setCurrentUser(null);
+            console.error('인증 확인 중 오류:', error.message);
+            // 401 에러면 토큰 제거
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                localStorage.removeItem(TOKEN_KEY);
+                setCurrentUser(null);
+            }
         } finally {
             setLoading(false);
-        }
-    }
-
-    async function login(email, password) {
-        try {
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-            console.log('로그인 API 호출:', `${API_URL}/api/auth/login`, { email, password });
-            setError('');
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
-                email,
-                password
-            });
-
-            // 세션 인증 방식을 사용하므로 별도의 토큰 저장 없이
-            // 서버에서 세션 쿠키를 설정합니다.
-            console.log('로그인 응답:', response);
-            console.log('로그인 쿠키 확인:', document.cookie);
-            // 짧은 지연 후 사용자 정보 확인 (세션 설정 시간 고려)
-            setTimeout(async () => {
-            await checkAuthStatus(); // 로그인 후 사용자 정보 다시 가져오기
-            }, 100);
-            return response.data;
-        } catch (error) {
-            setError(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
-            throw error;
         }
     }
 
@@ -90,13 +73,30 @@ export function AuthProvider({ children }) {
         }
     }
 
-    async function logout() {
+    async function login(email, password) {
         try {
-            await axios.post(`${API_URL}/api/auth/logout`);
-            setCurrentUser(null);
+            setError('');
+            const response = await axios.post(`${API_URL}/api/auth/login`, {
+                email,
+                password
+            });
+
+            // JWT 토큰 저장
+            const token = response.data.accessToken;
+            localStorage.setItem(TOKEN_KEY, token);
+
+            // 사용자 정보 가져오기
+            await checkAuthStatus();
+            return response.data;
         } catch (error) {
-            console.error('Logout error:', error);
+            setError(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
+            throw error;
         }
+    }
+
+    async function logout() {
+        localStorage.removeItem(TOKEN_KEY);
+        setCurrentUser(null);
     }
 
     async function forgotPassword(email) {
@@ -140,8 +140,8 @@ export function AuthProvider({ children }) {
         loading,
         error,
         login,
-        register,
         logout,
+        register,
         forgotPassword,
         resetPassword,
         verifyEmail

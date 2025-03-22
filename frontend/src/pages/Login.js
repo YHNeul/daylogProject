@@ -49,7 +49,8 @@ function Login() {
                 console.log('로그인 시도:', values);
                 await login(values.email, values.password);
                 console.log('로그인 성공, 대시보드로 이동');
-                navigate('/dashboard');
+                // 로그인 성공 후 강제 새로고침
+                window.location.href = '/dashboard';  // navigate() 대신 직접 URL 변경
             } catch (error) {
                 setErrorMessage(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
             } finally {

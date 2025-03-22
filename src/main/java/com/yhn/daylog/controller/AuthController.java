@@ -1,12 +1,18 @@
 package com.yhn.daylog.controller;
 
 import com.yhn.daylog.dto.AuthenticationDTO;
+import com.yhn.daylog.security.JwtUtils;
 import com.yhn.daylog.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -16,10 +22,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody AuthenticationDTO.SignupRequest signupRequest) {
@@ -37,12 +49,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody AuthenticationDTO.LoginRequest loginRequest) {
-        authService.authenticateUser(loginRequest);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
+        );
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "로그인이 성공적으로 완료되었습니다.");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
 
-        return ResponseEntity.ok(response);
+        AuthenticationDTO.TokenResponse tokenResponse = new AuthenticationDTO.TokenResponse(jwt, "Bearer", 86400000L);
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("/logout")
