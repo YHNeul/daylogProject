@@ -26,11 +26,13 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useAuth } from '../contexts/AuthContext';
 
-// 임시 컴포넌트들
-const CalendarPage = () => <Box p={3}><Typography variant="h4">캘린더</Typography></Box>;
+// 실제 페이지 컴포넌트 임포트
+import CalendarPage from './CalendarPage';
+import CategoryPage from './CategoryPage';
+
+// 아직 구현되지 않은 페이지를 위한 임시 컴포넌트
 const TodoPage = () => <Box p={3}><Typography variant="h4">할 일 목록</Typography></Box>;
 const DiaryPage = () => <Box p={3}><Typography variant="h4">다이어리</Typography></Box>;
-const CategoryPage = () => <Box p={3}><Typography variant="h4">카테고리</Typography></Box>;
 const ProfilePage = () => <Box p={3}><Typography variant="h4">프로필</Typography></Box>;
 
 const drawerWidth = 240;
