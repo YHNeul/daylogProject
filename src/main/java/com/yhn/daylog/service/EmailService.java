@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final String baseUrl = "http://localhost:8080"; // 프로덕션에서는 실제 도메인으로 변경
+    private final String baseUrl = "http://localhost:8083"; // 프로덕션에서는 실제 도메인으로 변경
 
     public void sendVerificationEmail(User user) {
         SimpleMailMessage message = new SimpleMailMessage();
