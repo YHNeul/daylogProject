@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 // Auth Context Provider
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import { CategoryProvider } from './contexts/CategoryContext';
 
 const theme = createTheme({
   palette: {
@@ -34,6 +35,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
+            <CategoryProvider>
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -54,6 +56,7 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Router>
+            </CategoryProvider>
         </AuthProvider>
       </ThemeProvider>
   );

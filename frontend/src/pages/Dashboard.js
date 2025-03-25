@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCategories } from '../contexts/CategoryContext';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import {
     AppBar,
@@ -46,87 +47,12 @@ const drawerWidth = 240;
 
 function Dashboard() {
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [categoriesOpen, setCategoriesOpen] = useState(true);
+    const { categories, loading, error, handleCategoryVisibilityChange } = useCategories();
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const API_URL = 'http://localhost:8083';
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    const fetchCategories = async () => {
-        try {
-            setLoading(true);
-            const token = localStorage.getItem('auth_token');
-            const response = await axios.get(`${API_URL}/api/categories`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // 카테고리 가시성 정보 불러오기
-            const visibilityResponse = await axios.get(`${API_URL}/api/categories/visibility`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // 카테고리와 가시성 정보 결합
-            const categoriesWithVisibility = response.data.map(category => {
-                const visibilityItem = visibilityResponse.data.find(
-                    item => item.categoryId === category.id
-                );
-
-                return {
-                    ...category,
-                    visible: visibilityItem ? visibilityItem.visible : true
-                };
-            });
-
-            setCategories(categoriesWithVisibility);
-        } catch (error) {
-            console.error('카테고리 조회 중 오류 발생:', error);
-            setError('카테고리를 불러오는 중 오류가 발생했습니다');
-
-            // 기본 카테고리라도 표시
-            setCategories([{
-                id: 0,
-                name: '기본',
-                visible: true
-            }]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCategoryVisibilityChange = async (categoryId, isVisible) => {
-        try {
-            const token = localStorage.getItem('auth_token');
-            await axios.put(`${API_URL}/api/categories/${categoryId}/visibility`,
-                { visible: isVisible },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-
-            // 상태 업데이트
-            setCategories(prevCategories =>
-                prevCategories.map(category =>
-                    category.id === categoryId
-                        ? { ...category, visible: isVisible }
-                        : category
-                )
-            );
-        } catch (error) {
-            console.error('카테고리 가시성 변경 중 오류 발생:', error);
-        }
-    };
 
     const handleAddCategory = () => {
         navigate('/dashboard/categories');

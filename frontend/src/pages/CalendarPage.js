@@ -15,12 +15,14 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { useCategories } from '../contexts/CategoryContext';
+
 
 const localizer = momentLocalizer(moment);
 
 const CalendarPage = () => {
     const [events, setEvents] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const { categories, visibleCategories } = useCategories();
     const [open, setOpen] = useState(false);
     const [currentEvent, setCurrentEvent] = useState({
         title: '',
@@ -42,8 +44,7 @@ const CalendarPage = () => {
 
     useEffect(() => {
         fetchEvents();
-        fetchCategories();
-    }, []);
+    }, [visibleCategories]); // visibleCategories가 변경될 때마다 이벤트 다시 불러오기
 
     const fetchEvents = async () => {
         try {
@@ -57,26 +58,6 @@ const CalendarPage = () => {
                 }
             });
 
-            // 카테고리 가시성 정보 가져오기
-            let visibleCategoryIds = [];
-            try {
-                const visibilityResponse = await axios.get(`${API_URL}/api/categories/visibility`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                visibleCategoryIds = visibilityResponse.data
-                    .filter(v => v.visible)
-                    .map(v => v.categoryId);
-
-                console.log('보이는 카테고리 ID:', visibleCategoryIds);
-            } catch (error) {
-                console.error('카테고리 가시성 정보 조회 중 오류:', error);
-                // API 오류 시 모든 카테고리를 보이도록 설정
-                visibleCategoryIds = categories.map(cat => cat.id);
-            }
-
             console.log('서버에서 받은 이벤트:', response.data);
 
             // 이벤트 데이터 형식 변환
@@ -89,7 +70,7 @@ const CalendarPage = () => {
                     if (!event.category || !event.category.id) return true;
 
                     // 카테고리가 있는 경우 해당 카테고리가 보이는지 확인
-                    return visibleCategoryIds.includes(event.category.id);
+                    return visibleCategories.includes(event.category.id);
                 })
                 .map(event => {
                     // 원본 데이터 보존
@@ -136,20 +117,6 @@ const CalendarPage = () => {
             setError('이벤트를 불러오는 중 오류가 발생했습니다');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            const token = localStorage.getItem('auth_token');
-            const response = await axios.get(`${API_URL}/api/categories`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            setCategories(response.data);
-        } catch (error) {
-            console.error('카테고리 조회 중 오류 발생:', error);
         }
     };
 
