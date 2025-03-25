@@ -60,7 +60,8 @@
     - 기분 점수(0~100)를 매길 수 있고, 영향을 준 일정을 선택하면 내용을 AI가 분석하고 일정을 추천한다. -> 상세 내용 기재 예정
 
 ## 🖼 ERD
-![daylogERD.png](../../daylogERD.png)
+![daylogERD](https://github.com/user-attachments/assets/8f13e54f-1864-448f-ae8e-26fa3ab1ea39)
+
 
 ## 프로젝트 구조
 ![image](https://github.com/user-attachments/assets/4663338b-495a-4c65-b53b-9c357ecce604)
