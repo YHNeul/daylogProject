@@ -60,6 +60,11 @@ public class CalendarEventService {
             event.setCategory(category);
         }
 
+        // 색상이 지정되지 않았으면 기본값 설정
+        if (event.getColor() == null || event.getColor().isEmpty()) {
+            event.setColor("#FFFFFF"); // 기본 흰색
+        }
+
         return eventRepository.save(event);
     }
 
@@ -76,6 +81,11 @@ public class CalendarEventService {
         event.setStartTime(eventDetails.getStartTime());
         event.setEndTime(eventDetails.getEndTime());
         event.setAllDay(eventDetails.getAllDay());
+
+        // 색상 업데이트
+        if (eventDetails.getColor() != null) {
+            event.setColor(eventDetails.getColor());
+        }
 
         // 카테고리 처리
         if (eventDetails.getCategory() != null && eventDetails.getCategory().getId() != null) {

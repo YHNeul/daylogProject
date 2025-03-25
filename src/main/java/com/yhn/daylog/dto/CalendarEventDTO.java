@@ -1,6 +1,7 @@
 package com.yhn.daylog.dto;
 
 import com.yhn.daylog.model.CalendarEvent;
+import com.yhn.daylog.model.Category;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,13 +20,21 @@ public class CalendarEventDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Boolean allDay;
-    private CategoryDTO category;
+    private String color;
+    private Category category;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static CalendarEventDTO fromEntity(CalendarEvent event) {
-        if (event == null) {
-            return null;
-        }
+        Category category = null;
 
+        // 카테고리가 있을 경우 필요한 정보만 추출
+        if (event.getCategory() != null) {
+            category = new Category();
+            category.setId(event.getCategory().getId());
+            category.setName(event.getCategory().getName());
+            category.setColor(event.getCategory().getColor());
+        }
         return CalendarEventDTO.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -33,7 +42,10 @@ public class CalendarEventDTO {
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
                 .allDay(event.getAllDay())
-                .category(CategoryDTO.fromEntity(event.getCategory()))
+                .color(event.getColor())
+                .category(category)
+                .createdAt(event.getCreatedAt())
+                .updatedAt(event.getUpdatedAt())
                 .build();
     }
 }

@@ -28,7 +28,8 @@ const CalendarPage = () => {
         startTime: new Date(),
         endTime: new Date(new Date().getTime() + 60 * 60 * 1000), // 1 hour later
         allDay: true,
-        category: null
+        category: null,
+        color: '#FFFFFF' // 기본 흰색
     });
     const [showTimeSelection, setShowTimeSelection] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -48,54 +49,85 @@ const CalendarPage = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
+
+            // 이벤트 데이터 가져오기
             const response = await axios.get(`${API_URL}/api/events`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
+            // 카테고리 가시성 정보 가져오기
+            let visibleCategoryIds = [];
+            try {
+                const visibilityResponse = await axios.get(`${API_URL}/api/categories/visibility`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                visibleCategoryIds = visibilityResponse.data
+                    .filter(v => v.visible)
+                    .map(v => v.categoryId);
+
+                console.log('보이는 카테고리 ID:', visibleCategoryIds);
+            } catch (error) {
+                console.error('카테고리 가시성 정보 조회 중 오류:', error);
+                // API 오류 시 모든 카테고리를 보이도록 설정
+                visibleCategoryIds = categories.map(cat => cat.id);
+            }
+
             console.log('서버에서 받은 이벤트:', response.data);
 
-            // 이벤트 데이터 형식 변환 - 수정된 부분
-            const formattedEvents = response.data.map(event => {
-                // 원본 데이터 보존
-                const originalStartTime = new Date(event.startTime);
-                const originalEndTime = new Date(event.endTime);
+            // 이벤트 데이터 형식 변환
+            const formattedEvents = response.data
+                // 두 가지 조건 중 하나를 만족하는 이벤트만 표시:
+                // 1. 카테고리가 없는 이벤트
+                // 2. 보이는 카테고리에 속한 이벤트
+                .filter(event => {
+                    // 카테고리가 없는 경우 보여주기
+                    if (!event.category || !event.category.id) return true;
 
-                // 화면 표시용 데이터 (React-Big-Calendar용)
-                let displayStart = new Date(originalStartTime);
-                let displayEnd = new Date(originalEndTime);
+                    // 카테고리가 있는 경우 해당 카테고리가 보이는지 확인
+                    return visibleCategoryIds.includes(event.category.id);
+                })
+                .map(event => {
+                    // 원본 데이터 보존
+                    const originalStartTime = new Date(event.startTime);
+                    const originalEndTime = new Date(event.endTime);
 
-                // allDay 이벤트인 경우 캘린더 표시 방식 조정
-                if (event.allDay) {
-                    // 종료일이 23:59:59로 설정된 경우 (데이터베이스에 저장된 형식)
-                    // React-Big-Calendar는 exclusive end date를 사용하므로 +1일 해야 함
-                    if (displayEnd.getHours() === 23 && displayEnd.getMinutes() === 59) {
-                        // 다음 날 00:00:00으로 설정
-                        const nextDay = new Date(displayEnd);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        nextDay.setHours(0, 0, 0, 0);
-                        displayEnd = nextDay;
+                    // 화면 표시용 데이터 (React-Big-Calendar용)
+                    let displayStart = new Date(originalStartTime);
+                    let displayEnd = new Date(originalEndTime);
 
-                        console.log(`이벤트 ${event.id} 종료일 조정:`, {
-                            제목: event.title,
-                            원래종료일: originalEndTime.toISOString(),
-                            조정된종료일: displayEnd.toISOString()
-                        });
+                    // allDay 이벤트인 경우 캘린더 표시 방식 조정
+                    if (event.allDay) {
+                        // 종료일이 23:59:59로 설정된 경우 (데이터베이스에 저장된 형식)
+                        // React-Big-Calendar는 exclusive end date를 사용하므로 +1일 해야 함
+                        if (displayEnd.getHours() === 23 && displayEnd.getMinutes() === 59) {
+                            // 다음 날 00:00:00으로 설정
+                            const nextDay = new Date(displayEnd);
+                            nextDay.setDate(nextDay.getDate() + 1);
+                            nextDay.setHours(0, 0, 0, 0);
+                            displayEnd = nextDay;
+                        }
                     }
-                }
 
-                return {
-                    ...event,
-                    // 원본 데이터 유지 (폼에서 사용)
-                    startTime: originalStartTime,
-                    endTime: originalEndTime,
-                    // 캘린더 표시용 데이터
-                    start: displayStart,
-                    end: displayEnd,
-                    allDay: event.allDay
-                };
-            });
+                    // 색상이 없는 경우 기본값 설정
+                    const color = event.color || (event.category ? event.category.color : '#FFFFFF');
+
+                    return {
+                        ...event,
+                        // 원본 데이터 유지 (폼에서 사용)
+                        startTime: originalStartTime,
+                        endTime: originalEndTime,
+                        // 캘린더 표시용 데이터
+                        start: displayStart,
+                        end: displayEnd,
+                        allDay: event.allDay,
+                        color: color
+                    };
+                });
 
             console.log('변환된 이벤트:', formattedEvents);
             setEvents(formattedEvents);
@@ -162,13 +194,18 @@ const CalendarPage = () => {
                 newEnd: newEnd.toISOString()
             });
 
+            // 카테고리가 없다면 기본 카테고리 찾기
+            const defaultCategory = categories.find(cat => cat.name === '기본');
+            const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
+
             setCurrentEvent({
                 title: '',
                 description: '',
                 startTime: newStart,
                 endTime: newEnd,
                 allDay: true,
-                category: null
+                category: defaultCategoryId,  // 여기에 기본 카테고리 ID 설정
+                color: '#FFFFFF'
             });
 
             setShowTimeSelection(false);
@@ -201,17 +238,23 @@ const CalendarPage = () => {
                 newEnd: newEnd.toISOString()
             });
 
+            // 카테고리가 없다면 기본 카테고리 찾기
+            const defaultCategory = categories.find(cat => cat.name === '기본');
+            const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
+
             setCurrentEvent({
                 title: '',
                 description: '',
                 startTime: newStart,
                 endTime: newEnd,
                 allDay: true,
-                category: null
+                category: defaultCategoryId,  // 여기에 기본 카테고리 ID 설정
+                color: '#FFFFFF'
             });
 
             setShowTimeSelection(false);
             setIsEditMode(false);
+
         } else { // 새 이벤트 버튼 클릭
             // 오늘 날짜만 남기고 시간 정보는 초기화
             const today = new Date();
@@ -228,13 +271,18 @@ const CalendarPage = () => {
                 todayEnd: todayEnd.toISOString()
             });
 
+            // 카테고리가 없다면 기본 카테고리 찾기
+            const defaultCategory = categories.find(cat => cat.name === '기본');
+            const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
+
             setCurrentEvent({
                 title: '',
                 description: '',
                 startTime: todayStart,
                 endTime: todayEnd,
                 allDay: true,
-                category: null
+                category: defaultCategoryId,  // 여기에 기본 카테고리 ID 설정
+                color: '#FFFFFF'
             });
 
             setShowTimeSelection(false);
@@ -480,6 +528,14 @@ const CalendarPage = () => {
                 }
             });
 
+            // 카테고리가 없다면 기본 카테고리 찾기
+            if (!currentEvent.category) {
+                const defaultCategory = categories.find(cat => cat.name === '기본');
+                if (defaultCategory) {
+                    currentEvent.category = defaultCategory.id;
+                }
+            }
+
             // 백엔드로 전송할 이벤트 데이터 준비 - Date 객체 대신 문자열 사용
             const eventData = {
                 ...currentEvent,
@@ -545,13 +601,19 @@ const CalendarPage = () => {
 
     // 이벤트 스타일 지정
     const eventStyleGetter = (event) => {
-        const backgroundColor = event.category ? event.category.color : '#3174ad';
+        // 이벤트 자체 색상이 있으면 사용, 없으면 카테고리 색상 사용
+        const backgroundColor = event.color || (event.category ? event.category.color : '#FFFFFF');
+
+        // 배경색이 흰색이면 테두리 추가
+        const border = backgroundColor === '#FFFFFF' ? '1px solid #ccc' : 'none';
+        const textColor = backgroundColor === '#FFFFFF' ? '#000' : '#fff';
+
         return {
             style: {
                 backgroundColor,
                 borderRadius: '5px',
-                color: '#fff',
-                border: 'none'
+                color: textColor,
+                border: border
             }
         };
     };
@@ -747,38 +809,37 @@ const CalendarPage = () => {
                         </Box>
                     </LocalizationProvider>
 
+                    {/* '기본' 카테고리를 기본값으로 */}
                     <FormControl fullWidth sx={{ mb: 2 }}>
                         <InputLabel id="category-label">카테고리</InputLabel>
                         <Select
                             labelId="category-label"
                             name="category"
-                            value={currentEvent.category || ''}
+                            value={currentEvent.category || (categories.find(cat => cat.name === '기본')?.id || '')}
                             onChange={handleInputChange}
                             label="카테고리"
                         >
-                            <MenuItem value="">
-                                <em>없음</em>
-                            </MenuItem>
+                            {/* '없음' 옵션 제거 */}
                             {categories.map((category) => (
                                 <MenuItem key={category.id} value={category.id}>
-                                    <Box display="flex" alignItems="center">
-                                        <Box
-                                            component="span"
-                                            sx={{
-                                                display: 'inline-block',
-                                                width: 16,
-                                                height: 16,
-                                                bgcolor: category.color,
-                                                borderRadius: '50%',
-                                                mr: 1
-                                            }}
-                                        />
-                                        {category.name}
-                                    </Box>
+                                    {category.name}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
+                    {/* 색상 선택 추가*/}
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                            색상
+                        </Typography>
+                        <TextField
+                            name="color"
+                            type="color"
+                            value={currentEvent.color || '#FFFFFF'}
+                            onChange={handleInputChange}
+                            sx={{ width: '100%' }}
+                        />
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     {isEditMode && (

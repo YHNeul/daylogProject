@@ -12,43 +12,29 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "calendar_event")
+@Table(name = "category_visibility")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CalendarEvent {
+public class CategoryVisibility {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
-
-    @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
-
-    @Column(name = "all_day")
-    private Boolean allDay = false;
-
-    @Column(name = "color")
-    private String color;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonIgnore
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
+
+    @Column(nullable = false)
+    private Boolean visible = true;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
