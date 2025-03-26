@@ -14,82 +14,87 @@ import java.util.List;
 @Service
 public class CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+  @Autowired
+  private CategoryRepository categoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-    @Autowired
-    private CategoryVisibilityService visibilityService;
+  public List<Category> getAllCategoriesByUser(String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-    public List<Category> getAllCategoriesByUser(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    List<Category> categories = categoryRepository.findByUser(user);
 
-        List<Category> categories = categoryRepository.findByUser(user);
-
-        // 카테고리가 없으면 기본 카테고리 생성
-        if (categories.isEmpty()) {
-            Category defaultCategory = new Category();
-            defaultCategory.setName("기본");
-            defaultCategory.setColor("#3174ad"); // 기본 파란색
-            defaultCategory.setUser(user);
-            defaultCategory = categoryRepository.save(defaultCategory);
-
-            // 기본 카테고리 가시성 설정
-            visibilityService.createDefaultVisibilityForCategory(defaultCategory, user);
-
-            categories.add(defaultCategory);
-        }
-
-        return categories;
+    // 카테고리가 없으면 기본 카테고리 생성
+    if (categories.isEmpty()) {
+      Category defaultCategory = new Category();
+      defaultCategory.setName("개인");
+      defaultCategory.setVisible(true);
+      defaultCategory.setUser(user);
+      defaultCategory = categoryRepository.save(defaultCategory);
+      categories.add(defaultCategory);
     }
 
-    public Category getCategoryById(Long id, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    return categories;
+  }
 
-        return categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+  public Category getCategoryById(Long id, String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+    return categoryRepository.findByIdAndUser(id, user)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+  }
+
+  @Transactional
+  public Category updateCategoryVisibility(Long id, Boolean visible, String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+    Category category = categoryRepository.findByIdAndUser(id, user)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+
+    category.setVisible(visible);
+    return categoryRepository.save(category);
+  }
+
+  @Transactional
+  public Category createCategory(Category category, String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+    category.setUser(user);
+    category.setVisible(true); // 기본적으로 보이게 설정
+    return categoryRepository.save(category);
+  }
+
+  @Transactional
+  public Category updateCategory(Long id, Category categoryDetails, String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+    Category category = categoryRepository.findByIdAndUser(id, user)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+
+    category.setName(categoryDetails.getName());
+
+    // 가시성이 제공되면 업데이트
+    if (categoryDetails.getVisible() != null) {
+      category.setVisible(categoryDetails.getVisible());
     }
 
-    @Transactional
-    public Category createCategory(Category category, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    return categoryRepository.save(category);
+  }
 
-        category.setUser(user);
-        Category savedCategory = categoryRepository.save(category);
+  @Transactional
+  public void deleteCategory(Long id, String email) {
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // 새 카테고리의 가시성 설정 추가
-        visibilityService.createDefaultVisibilityForCategory(savedCategory, user);
+    Category category = categoryRepository.findByIdAndUser(id, user)
+        .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
 
-        return savedCategory;
-    }
-
-    @Transactional
-    public Category updateCategory(Long id, Category categoryDetails, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
-
-        category.setName(categoryDetails.getName());
-        category.setColor(categoryDetails.getColor());
-
-        return categoryRepository.save(category);
-    }
-
-    @Transactional
-    public void deleteCategory(Long id, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
-
-        categoryRepository.delete(category);
-    }
+    categoryRepository.delete(category);
+  }
 }

@@ -12,20 +12,21 @@ import java.util.List;
 @Builder
 public class ApiErrorResponse {
 
-    private HttpStatus status;
-    private int statusCode;
+  private HttpStatus status;
+  private int statusCode;
+  private String message;
+  private String path;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+  private LocalDateTime timestamp;
+
+  private List<ValidationError> errors;
+
+  @Getter
+  @Builder
+  public static class ValidationError {
+
+    private String field;
     private String message;
-    private String path;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime timestamp;
-
-    private List<ValidationError> errors;
-
-    @Getter
-    @Builder
-    public static class ValidationError {
-        private String field;
-        private String message;
-    }
+  }
 }

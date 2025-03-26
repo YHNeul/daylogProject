@@ -11,7 +11,11 @@ import java.util.Optional;
 
 @Repository
 public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Long> {
-    List<CalendarEvent> findByUser(User user);
-    List<CalendarEvent> findByUserAndStartTimeBetween(User user, LocalDateTime start, LocalDateTime end);
-    Optional<CalendarEvent> findByIdAndUser(Long id, User user);
+
+  List<CalendarEvent> findByUser(User user);
+
+  List<CalendarEvent> findByUserAndStartTimeBetween(User user, LocalDateTime start,
+      LocalDateTime end);
+
+  Optional<CalendarEvent> findByIdAndUser(Long id, User user);
 }

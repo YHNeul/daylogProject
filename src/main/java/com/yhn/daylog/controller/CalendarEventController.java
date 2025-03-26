@@ -15,42 +15,45 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/events")
 public class CalendarEventController {
 
-    @Autowired
-    private CalendarEventService eventService;
+  @Autowired
+  private CalendarEventService eventService;
 
-    @GetMapping
-    public ResponseEntity<List<CalendarEventDTO>> getAllEvents(Authentication authentication) {
-        List<CalendarEvent> events = eventService.getAllEventsByUser(authentication.getName());
-        List<CalendarEventDTO> eventDTOs = events.stream()
-                .map(CalendarEventDTO::fromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(eventDTOs);
-    }
+  @GetMapping
+  public ResponseEntity<List<CalendarEventDTO>> getAllEvents(Authentication authentication) {
+    List<CalendarEvent> events = eventService.getAllEventsByUser(authentication.getName());
+    List<CalendarEventDTO> eventDTOs = events.stream()
+        .map(CalendarEventDTO::fromEntity)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(eventDTOs);
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CalendarEventDTO> getEventById(@PathVariable Long id, Authentication authentication) {
-        CalendarEvent event = eventService.getEventById(id, authentication.getName());
-        return ResponseEntity.ok(CalendarEventDTO.fromEntity(event));
-    }
+  @GetMapping("/{id}")
+  public ResponseEntity<CalendarEventDTO> getEventById(@PathVariable Long id,
+      Authentication authentication) {
+    CalendarEvent event = eventService.getEventById(id, authentication.getName());
+    return ResponseEntity.ok(CalendarEventDTO.fromEntity(event));
+  }
 
-    @PostMapping
-    public ResponseEntity<CalendarEventDTO> createEvent(@RequestBody CalendarEvent event, Authentication authentication) {
-        CalendarEvent newEvent = eventService.createEvent(event, authentication.getName());
-        return ResponseEntity.ok(CalendarEventDTO.fromEntity(newEvent));
-    }
+  @PostMapping
+  public ResponseEntity<CalendarEventDTO> createEvent(@RequestBody CalendarEvent event,
+      Authentication authentication) {
+    CalendarEvent newEvent = eventService.createEvent(event, authentication.getName());
+    return ResponseEntity.ok(CalendarEventDTO.fromEntity(newEvent));
+  }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CalendarEventDTO> updateEvent(
-            @PathVariable Long id,
-            @RequestBody CalendarEvent eventDetails,
-            Authentication authentication) {
-        CalendarEvent updatedEvent = eventService.updateEvent(id, eventDetails, authentication.getName());
-        return ResponseEntity.ok(CalendarEventDTO.fromEntity(updatedEvent));
-    }
+  @PutMapping("/{id}")
+  public ResponseEntity<CalendarEventDTO> updateEvent(
+      @PathVariable Long id,
+      @RequestBody CalendarEvent eventDetails,
+      Authentication authentication) {
+    CalendarEvent updatedEvent = eventService.updateEvent(id, eventDetails,
+        authentication.getName());
+    return ResponseEntity.ok(CalendarEventDTO.fromEntity(updatedEvent));
+  }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEvent(@PathVariable Long id, Authentication authentication) {
-        eventService.deleteEvent(id, authentication.getName());
-        return ResponseEntity.ok().build();
-    }
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> deleteEvent(@PathVariable Long id, Authentication authentication) {
+    eventService.deleteEvent(id, authentication.getName());
+    return ResponseEntity.ok().build();
+  }
 }

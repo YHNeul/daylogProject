@@ -14,21 +14,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        if (authentication == null) {
-            return ResponseEntity.status(401).body("인증되지 않은 사용자입니다");
-        }
-
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
-
-        // 비밀번호 필드 제외
-        user.setPassword(null);
-
-        return ResponseEntity.ok(user);
+  @GetMapping("/me")
+  public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    if (authentication == null) {
+      return ResponseEntity.status(401).body("인증되지 않은 사용자입니다");
     }
+
+    User user = userRepository.findByEmail(authentication.getName())
+        .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+
+    // 비밀번호 필드 제외
+    user.setPassword(null);
+
+    return ResponseEntity.ok(user);
+  }
 }

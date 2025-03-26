@@ -27,31 +27,13 @@ export function CategoryProvider({ children }) {
                 }
             });
 
-            // 카테고리 가시성 정보 불러오기
-            const visibilityResponse = await axios.get(`${API_URL}/api/categories/visibility`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // 카테고리와 가시성 정보 결합
-            const categoriesWithVisibility = response.data.map(category => {
-                const visibilityItem = visibilityResponse.data.find(
-                    item => item.categoryId === category.id
-                );
-
-                return {
-                    ...category,
-                    visible: visibilityItem ? visibilityItem.visible : true
-                };
-            });
-
-            setCategories(categoriesWithVisibility);
+            // 카테고리 데이터 설정
+            setCategories(response.data);
 
             // 보이는 카테고리 ID 목록 업데이트
-            const visible = categoriesWithVisibility
-                .filter(cat => cat.visible)
-                .map(cat => cat.id);
+            const visible = response.data
+            .filter(cat => cat.visible)
+            .map(cat => cat.id);
 
             setVisibleCategories(visible);
         } catch (error) {
@@ -105,6 +87,96 @@ export function CategoryProvider({ children }) {
         }
     };
 
+    // 카테고리 추가 함수
+    const addCategory = async (name) => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('auth_token');
+
+            const response = await axios.post(`${API_URL}/api/categories`,
+                { name },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            const newCategory = response.data;
+
+            // 상태 업데이트
+            setCategories(prev => [...prev, newCategory]);
+
+            // 기본적으로 새 카테고리는 보이게 설정
+            if (newCategory.visible) {
+                setVisibleCategories(prev => [...prev, newCategory.id]);
+            }
+
+            return newCategory;
+        } catch (error) {
+            console.error('카테고리 추가 중 오류 발생:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 카테고리 수정 함수
+    const updateCategory = async (id, name) => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('auth_token');
+
+            const response = await axios.put(`${API_URL}/api/categories/${id}`,
+                { name },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            const updatedCategory = response.data;
+
+            // 상태 업데이트
+            setCategories(prev =>
+                prev.map(cat => cat.id === id ? updatedCategory : cat)
+            );
+
+            return updatedCategory;
+        } catch (error) {
+            console.error('카테고리 수정 중 오류 발생:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 카테고리 삭제 함수
+    const deleteCategory = async (id) => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('auth_token');
+
+            await axios.delete(`${API_URL}/api/categories/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // 상태 업데이트
+            setCategories(prev => prev.filter(cat => cat.id !== id));
+            setVisibleCategories(prev => prev.filter(catId => catId !== id));
+
+            return true;
+        } catch (error) {
+            console.error('카테고리 삭제 중 오류 발생:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <CategoryContext.Provider
             value={{
@@ -113,7 +185,10 @@ export function CategoryProvider({ children }) {
                 loading,
                 error,
                 fetchCategories,
-                handleCategoryVisibilityChange
+                handleCategoryVisibilityChange,
+                addCategory,
+                updateCategory,
+                deleteCategory
             }}
         >
             {children}

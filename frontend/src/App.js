@@ -1,6 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom';
+import {ThemeProvider, createTheme} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 // Pages
@@ -12,9 +17,9 @@ import VerifyEmail from './pages/VerifyEmail';
 import Dashboard from './pages/Dashboard';
 
 // Auth Context Provider
-import { AuthProvider } from './contexts/AuthContext';
+import {AuthProvider} from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import { CategoryProvider } from './contexts/CategoryContext';
+import {CategoryProvider} from './contexts/CategoryContext';
 
 const theme = createTheme({
   palette: {
@@ -33,30 +38,30 @@ const theme = createTheme({
 function App() {
   return (
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        <CssBaseline/>
         <AuthProvider>
-            <CategoryProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
+          <CategoryProvider>
+            <Router>
+              <Routes>
+                <Route path="/login" element={<Login/>}/>
+                <Route path="/register" element={<Register/>}/>
+                <Route path="/forgot-password" element={<ForgotPassword/>}/>
+                <Route path="/reset-password" element={<ResetPassword/>}/>
+                <Route path="/verify-email" element={<VerifyEmail/>}/>
 
-              <Route
-                  path="/dashboard/*"
-                  element={
-                    <PrivateRoute>
-                      <Dashboard />
-                    </PrivateRoute>
-                  }
-              />
+                <Route
+                    path="/dashboard/*"
+                    element={
+                      <PrivateRoute>
+                        <Dashboard/>
+                      </PrivateRoute>
+                    }
+                />
 
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </Router>
-            </CategoryProvider>
+                <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+              </Routes>
+            </Router>
+          </CategoryProvider>
         </AuthProvider>
       </ThemeProvider>
   );
