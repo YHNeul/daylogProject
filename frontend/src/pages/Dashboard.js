@@ -59,8 +59,12 @@ function Dashboard() {
     categories,
     loading,
     error,
-    handleCategoryVisibilityChange
+    handleCategoryVisibilityChange,
+    addCategory,
+    updateCategory,
+    deleteCategory
   } = useCategories();
+
   // 카테고리 관리 모달 상태
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState({ id: null, name: '' });
@@ -103,29 +107,16 @@ function Dashboard() {
   // 카테고리 추가/수정
   const handleSaveCategory = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-
       if (currentCategory.id) {
         // 기존 카테고리 수정
-        await axios.put(`${API_URL}/api/categories/${currentCategory.id}`,
-            { name: currentCategory.name },
-            {
-              headers: { 'Authorization': `Bearer ${token}` }
-            }
-        );
+        await updateCategory(currentCategory.id, currentCategory.name);
       } else {
         // 새 카테고리 추가
-        await axios.post(`${API_URL}/api/categories`,
-            { name: currentCategory.name },
-            {
-              headers: { 'Authorization': `Bearer ${token}` }
-            }
-        );
+        await addCategory(currentCategory.name);
       }
 
       setCategoryModalOpen(false);
-      // 카테고리 목록 새로고침
-      fetchCategories();
+      setCurrentCategory({ id: null, name: '' });
     } catch (error) {
       console.error('카테고리 저장 중 오류 발생:', error);
     }
@@ -137,15 +128,8 @@ function Dashboard() {
 
     if (window.confirm('정말로 이 카테고리를 삭제하시겠습니까?')) {
       try {
-        const token = localStorage.getItem('auth_token');
-
-        await axios.delete(`${API_URL}/api/categories/${currentCategory.id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
+        await deleteCategory(currentCategory.id);
         setCategoryModalOpen(false);
-        // 카테고리 목록 새로고침
-        fetchCategories();
       } catch (error) {
         console.error('카테고리 삭제 중 오류 발생:', error);
       }
