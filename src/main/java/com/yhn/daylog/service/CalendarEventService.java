@@ -55,7 +55,14 @@ public class CalendarEventService {
     event.setUser(user);
 
     // 카테고리 처리
-    if (event.getCategory() != null && event.getCategory().getId() != null) {
+    if (event.getCategory() == null || event.getCategory().getId() == null) {
+      // 카테고리가 없으면 '개인' 카테고리 찾기
+      Category personalCategory = categoryRepository.findByNameAndUser("개인", user)
+          .orElse(null);
+      if (personalCategory != null) {
+        event.setCategory(personalCategory);
+      }
+    } else {
       Category category = categoryRepository.findByIdAndUser(event.getCategory().getId(), user)
           .orElseThrow(() -> new RuntimeException("Category not found"));
       event.setCategory(category);

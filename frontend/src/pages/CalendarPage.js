@@ -164,9 +164,9 @@ const CalendarPage = () => {
         newEnd: newEnd.toISOString()
       });
 
-      // 카테고리가 없다면 기본 카테고리 찾기
-      const defaultCategory = categories.find(cat => cat.name === '기본');
-      const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
+      // 카테고리 기본값
+      const personalCategory = categories.find(cat => cat.name === '개인');
+      const personalCategoryId = personalCategory ? personalCategory.id : null;
 
       setCurrentEvent({
         title: '',
@@ -174,7 +174,7 @@ const CalendarPage = () => {
         startTime: newStart,
         endTime: newEnd,
         allDay: true,
-        category: defaultCategoryId,  // 여기에 기본 카테고리 ID 설정
+        category: personalCategoryId,  // '개인' 카테고리 ID로 설정
         color: '#FFFFFF'
       });
 
@@ -503,11 +503,11 @@ const CalendarPage = () => {
         }
       });
 
-      // 카테고리가 없다면 기본 카테고리 찾기
+      // 카테고리 기본값
       if (!currentEvent.category) {
-        const defaultCategory = categories.find(cat => cat.name === '기본');
-        if (defaultCategory) {
-          currentEvent.category = defaultCategory.id;
+        const personalCategory = categories.find(cat => cat.name === '개인');
+        if (personalCategory) {
+          currentEvent.category = personalCategory.id;
         }
       }
 

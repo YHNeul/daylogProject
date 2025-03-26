@@ -17,6 +17,7 @@ export function CategoryProvider({ children }) {
         fetchCategories();
     }, []);
 
+
     const fetchCategories = async () => {
         try {
             setLoading(true);
