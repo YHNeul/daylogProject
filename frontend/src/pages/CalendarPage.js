@@ -1,5 +1,4 @@
-// src/pages/CalendarPage.js
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {Calendar, momentLocalizer} from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import moment from 'moment';
@@ -16,6 +15,8 @@ import {TimePicker} from '@mui/x-date-pickers/TimePicker';
 import axios from 'axios';
 import {useAuth} from '../contexts/AuthContext';
 import {useCategories} from '../contexts/CategoryContext';
+import EventDetailsSidebar from '../components/EventDetailsSidebar';
+import { isSameDay } from 'date-fns';
 
 const localizer = momentLocalizer(moment);
 
@@ -39,11 +40,19 @@ const CalendarPage = () => {
   const [success, setSuccess] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // 오른쪽 사이드바
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [sidebarLoading, setSidebarLoading] = useState(false);
+  const [sidebarEvents, setSidebarEvents] = useState([]);
+
+  // eslint-disable-next-line no-unused-vars
   const {currentUser} = useAuth();
   const API_URL = 'http://localhost:8083';
 
   useEffect(() => {
     fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleCategories]); // visibleCategories가 변경될 때마다 이벤트 다시 불러오기
 
   const fetchEvents = async () => {
@@ -209,7 +218,7 @@ const CalendarPage = () => {
       });
 
       // 카테고리가 없다면 기본 카테고리 찾기
-      const defaultCategory = categories.find(cat => cat.name === '기본');
+      const defaultCategory = categories.find(cat => cat.name === '개인');
       const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
 
       setCurrentEvent({
@@ -243,7 +252,7 @@ const CalendarPage = () => {
       });
 
       // 카테고리가 없다면 기본 카테고리 찾기
-      const defaultCategory = categories.find(cat => cat.name === '기본');
+      const defaultCategory = categories.find(cat => cat.name === '개인');
       const defaultCategoryId = defaultCategory ? defaultCategory.id : null;
 
       setCurrentEvent({
@@ -550,6 +559,58 @@ const CalendarPage = () => {
     }
   };
 
+  // 날짜별 이벤트 필터링 함수
+  const getEventsByDate = (date) => {
+    return events.filter(event => {
+      const startDate = new Date(event.start);
+      const endDate = new Date(event.end);
+
+      // 종일 이벤트는 시작일과 종료일 사이의 모든 날짜에 표시
+      if (event.allDay) {
+        // 종료일은 exclusive이므로 -1일 처리
+        const adjustedEndDate = new Date(endDate);
+        adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+
+        return (
+            (date >= startDate && date <= adjustedEndDate) ||
+            isSameDay(date, startDate) ||
+            isSameDay(date, adjustedEndDate)
+        );
+      }
+
+      // 시간 지정 이벤트는 시작일에만 표시
+      return isSameDay(date, startDate);
+    });
+  };
+
+  // 날짜 클릭 시 사이드바 열기
+  const handleDateClick = (date) => {
+    setSidebarLoading(true);
+    setSelectedDate(date);
+
+    // 해당 날짜의 이벤트 가져오기
+    const filteredEvents = getEventsByDate(date);
+    setSidebarEvents(filteredEvents);
+
+    setSidebarOpen(true);
+    setSidebarLoading(false);
+  };
+
+  // 사이드바 닫기
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+  };
+
+  // 사이드바가 열려있을 때 캘린더 크기 조정을 위한 스타일
+  const calendarContainerStyle = useMemo(() => {
+    return {
+      height: 'calc(100vh - 220px)',
+      transition: 'width 0.3s ease-in-out',
+      width: sidebarOpen ? 'calc(100% - 350px)' : '100%',
+    };
+  }, [sidebarOpen]);
+
+
   const handleDeleteEvent = async () => {
     if (window.confirm('정말로 이 이벤트를 삭제하시겠습니까?')) {
       try {
@@ -609,7 +670,7 @@ const CalendarPage = () => {
         {loading && <CircularProgress/>}
 
         <Paper elevation={3} sx={{p: 2}}>
-          <div style={{height: 'calc(100vh - 220px)'}}>
+          <div style={calendarContainerStyle}>
             <Calendar
                 localizer={localizer}
                 events={events}
@@ -620,11 +681,13 @@ const CalendarPage = () => {
                 onSelectEvent={handleOpenDialog}
                 onSelectSlot={(slotInfo) => handleOpenDialog(
                     {slots: slotInfo, action: 'select'})}
+                onDrillDown={(date) => handleDateClick(date)} // 날짜 클릭 시 처리
                 date={currentDate}
                 onNavigate={(date) => setCurrentDate(date)}
                 selectable
                 popup
-                views={['month', 'week', 'day', 'agenda']}
+                views={['month']} // month 뷰만 표시
+                defaultView="month" // 기본 month 뷰로 설정
                 messages={{
                   today: '오늘',
                   previous: '<',
@@ -633,6 +696,15 @@ const CalendarPage = () => {
             />
           </div>
         </Paper>
+
+        {/* 이벤트 상세 사이드바 컴포넌트 */}
+        <EventDetailsSidebar
+            open={sidebarOpen}
+            onClose={handleCloseSidebar}
+            selectedDate={selectedDate}
+            events={sidebarEvents}
+            loading={sidebarLoading}
+        />
 
         {/* 이벤트 추가/수정 다이얼로그 */}
         <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
@@ -805,7 +877,7 @@ const CalendarPage = () => {
                   labelId="category-label"
                   name="category"
                   value={currentEvent.category || (categories.find(
-                      cat => cat.name === '기본')?.id || '')}
+                      cat => cat.name === '개인')?.id || '')}
                   onChange={handleInputChange}
                   label="카테고리"
               >
