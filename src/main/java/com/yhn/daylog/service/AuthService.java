@@ -2,9 +2,12 @@ package com.yhn.daylog.service;
 
 import com.yhn.daylog.dto.AuthenticationDTO;
 import com.yhn.daylog.dto.AuthenticationDTO;
+import com.yhn.daylog.model.Category;
 import com.yhn.daylog.model.User;
+import com.yhn.daylog.repository.CategoryRepository;
 import com.yhn.daylog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +28,9 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final EmailService emailService;
 
+  @Autowired
+  private CategoryRepository categoryRepository;
+
   @Transactional
   public User registerUser(AuthenticationDTO.SignupRequest signupRequest) {
     if (userRepository.existsByEmail(signupRequest.getEmail())) {
@@ -42,6 +48,13 @@ public class AuthService {
         .build();
 
     User savedUser = userRepository.save(user);
+
+    // 기본 카테고리 생성
+    Category defaultCategory = new Category();
+    defaultCategory.setName("개인");
+    defaultCategory.setUser(savedUser);
+    defaultCategory.setVisible(true);
+    categoryRepository.save(defaultCategory);
 
     // 이메일 인증 메일 발송
     emailService.sendVerificationEmail(user);

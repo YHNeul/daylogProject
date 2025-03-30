@@ -23,11 +23,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     User user = userRepository.findByEmail(email)
         .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
+    // 이메일 인증 여부에 따라 로그인 허용/차단
+    if (!user.getEmailVerified()) {
+      throw new RuntimeException("이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.");
+    }
+
     return new org.springframework.security.core.userdetails.User(
         user.getEmail(),
         user.getPassword(),
-        //user.getEmailVerified(),
-        true,
+        user.getEmailVerified(), // 실제 이메일 인증 여부 반영
         true,
         true,
         true,
