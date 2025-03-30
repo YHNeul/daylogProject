@@ -1,4 +1,4 @@
-package com.yhn.daylog.security;
+package com.yhn.daylog.service;
 
 import com.yhn.daylog.model.User;
 import com.yhn.daylog.repository.UserRepository;
