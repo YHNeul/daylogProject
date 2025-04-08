@@ -20,6 +20,7 @@ import Dashboard from './pages/Dashboard';
 import {AuthProvider} from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import {CategoryProvider} from './contexts/CategoryContext';
+import {TodoProvider} from './contexts/TodoContext';
 
 const theme = createTheme({
   palette: {
@@ -41,6 +42,7 @@ function App() {
         <CssBaseline/>
         <AuthProvider>
           <CategoryProvider>
+            <TodoProvider>
             <Router>
               <Routes>
                 <Route path="/login" element={<Login/>}/>
@@ -58,9 +60,12 @@ function App() {
                     }
                 />
 
+
+
                 <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
               </Routes>
             </Router>
+            </TodoProvider>
           </CategoryProvider>
         </AuthProvider>
       </ThemeProvider>

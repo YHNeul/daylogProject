@@ -19,6 +19,8 @@ import {
   Avatar,
   Dialog,
   DialogTitle,
+    useMediaQuery,
+    useTheme,
   DialogContent,
   DialogActions,
   TextField,
@@ -42,9 +44,8 @@ import {useAuth} from '../contexts/AuthContext';
 
 // 실제 페이지 컴포넌트 임포트
 import CalendarPage from './CalendarPage';
+import TodoPage from '../pages/TodoPage';
 // 구현되지 않은 페이지 임시 컴포넌트
-const TodoPage = () => <Box p={3}><Typography variant="h4">할 일
-  목록</Typography></Box>;
 const DiaryPage = () => <Box p={3}><Typography
     variant="h4">다이어리</Typography></Box>;
 const ProfilePage = () => <Box p={3}><Typography
@@ -138,7 +139,7 @@ function Dashboard() {
 
   const menuItems = [
     {text: '캘린더', icon: <CalendarMonthIcon/>, path: '/dashboard'},
-    {text: '할 일 목록', icon: <ChecklistIcon/>, path: '/dashboard/todo'},
+    {text: '할 일', icon: <ChecklistIcon/>, path: '/dashboard/todos'},
     {text: '다이어리', icon: <BookIcon/>, path: '/dashboard/diary'},
     {text: '프로필', icon: <AccountCircleIcon/>, path: '/dashboard/profile'},
   ];
@@ -338,7 +339,7 @@ function Dashboard() {
           <Toolbar/>
           <Routes>
             <Route path="/" element={<CalendarPage/>}/>
-            <Route path="/todo" element={<TodoPage/>}/>
+            <Route path="/todos" element={<TodoPage/>}/>
             <Route path="/diary" element={<DiaryPage/>}/>
             <Route path="/profile" element={<ProfilePage/>}/>
           </Routes>

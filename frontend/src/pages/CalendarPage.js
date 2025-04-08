@@ -1,20 +1,25 @@
 import React, {useState, useEffect, useMemo} from 'react';
 import {Calendar, momentLocalizer} from 'react-big-calendar';
+import { useNavigate } from 'react-router-dom';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import moment from 'moment';
 import {
   Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, FormControlLabel, Switch, Select, MenuItem,
   InputLabel, FormControl, CircularProgress, Snackbar, Alert,
-  Grid, Paper
+  Grid, Paper, Popover, List, ListItem, ListItemIcon, ListItemText, Divider,
+    Slider, Checkbox
 } from '@mui/material';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 import {TimePicker} from '@mui/x-date-pickers/TimePicker';
 import axios from 'axios';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import {useAuth} from '../contexts/AuthContext';
 import {useCategories} from '../contexts/CategoryContext';
+import { useTodos } from '../contexts/TodoContext';
 import EventDetailsSidebar from '../components/EventDetailsSidebar';
 import { isSameDay } from 'date-fns';
 
@@ -22,6 +27,7 @@ const localizer = momentLocalizer(moment);
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
+  const { todos, updateTodoProgress } = useTodos();
   const [currentDate, setCurrentDate] = useState(new Date());
   const {categories, visibleCategories} = useCategories();
   const [open, setOpen] = useState(false);
@@ -34,11 +40,24 @@ const CalendarPage = () => {
     category: null,
     color: '#FFFFFF' // 기본 흰색
   });
+  // 할일 모달 관련 상태 추가
+  const [todoModalOpen, setTodoModalOpen] = useState(false);
+  const [newTodo, setNewTodo] = useState({
+    title: '',
+    description: '',
+    dueDate: null,
+    showInCalendar: true,
+    category: null,
+    progress: 0,
+    color: '#000000' // 기본 검정색
+  });
   const [showTimeSelection, setShowTimeSelection] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
+  const navigate = useNavigate();
 
   // 오른쪽 사이드바
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -131,6 +150,44 @@ const CalendarPage = () => {
       setLoading(false);
     }
   };
+
+
+
+
+
+  // 캘린더에 표시할 이벤트 준비 (일정 + Todo)
+  const getAllCalendarEvents = useMemo(() => {
+    const calendarEvents = events.map(event => ({
+      ...event,
+      type: 'event' // 이벤트 타입 표시
+    }));
+
+    // 캘린더에 표시할 Todo 항목 (showInCalendar가 true인 항목만)
+    const todoEvents = todos
+    .filter(todo => todo.showInCalendar)
+    // 카테고리 필터링
+    .filter(todo => {
+      // 카테고리가 없는 경우 표시
+      if (!todo.category || !todo.category.id) {
+        return true;
+      }
+      // 카테고리가 있는 경우 해당 카테고리가 보이는지 확인
+      return visibleCategories.includes(todo.category.id);
+    })
+    .map(todo => ({
+      id: `todo-${todo.id}`,
+      title: todo.title, // "[할일]" 접두사 제거
+      start: todo.dueDate ? new Date(todo.dueDate) : new Date(),
+      end: todo.dueDate ? new Date(todo.dueDate) : new Date(),
+      allDay: true,
+      color: '#FFFFFF',
+      textColor: todo.color || '#000000',
+      type: 'todo',
+      original: todo // 원본 Todo 데이터 저장
+    }));
+
+    return [...calendarEvents, ...todoEvents];
+  }, [events, todos, visibleCategories]);
 
   const handleOpenDialog = (event = null) => {
     if (event && !event.action) { // 기존 이벤트 선택 시
@@ -559,9 +616,100 @@ const CalendarPage = () => {
     }
   };
 
+  const handleSaveTodo = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('auth_token');
+
+      // 날짜 처리를 명확하게
+      let dueDate = null;
+      if (newTodo.dueDate) {
+        const date = new Date(newTodo.dueDate);
+        // 날짜만 추출하여 시간을 정오로 설정
+        dueDate = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            12, 0, 0
+        ).toISOString();
+      }
+
+      const todoData = {
+        title: newTodo.title,
+        description: newTodo.description,
+        dueDate: dueDate,
+        showInCalendar: newTodo.showInCalendar,
+        progress: newTodo.progress,
+        color: newTodo.color || '#000000',
+        category: newTodo.category ? { id: newTodo.category } : null
+      };
+
+      await axios.post(`${API_URL}/api/todos`, todoData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setSuccess('할일이 성공적으로 추가되었습니다');
+      setTodoModalOpen(false);
+
+      // 할일 목록 다시 불러오기
+      window.location.reload();
+    } catch (error) {
+      console.error('할일 저장 중 오류 발생:', error);
+      setError('할일 저장 중 오류가 발생했습니다');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateTodo = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('auth_token');
+
+      const todoData = {
+        title: newTodo.title,
+        description: newTodo.description,
+        dueDate: newTodo.dueDate ? newTodo.dueDate.toISOString() : null,
+        showInCalendar: newTodo.showInCalendar,
+        progress: newTodo.progress,
+        color: newTodo.color,
+        category: newTodo.category ? { id: newTodo.category } : null
+      };
+
+      await axios.put(`${API_URL}/api/todos/${newTodo.id}`, todoData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // 업데이트된 Todo 목록을 가져와서 캘린더에 즉시 반영
+      const { data: todos } = await axios.get(`${API_URL}/api/todos`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // 성공 메시지 표시 및 모달 닫기
+      setSuccess('할일이 성공적으로 수정되었습니다');
+      setTodoModalOpen(false);
+
+      // 전역 todos 상태 업데이트 (api에서 새로운 데이터 가져옴)
+      if (window.updateTodos) {
+        window.updateTodos(todos);
+      }
+    } catch (error) {
+      console.error('할일 수정 중 오류 발생:', error);
+      setError('할일 수정 중 오류가 발생했습니다');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 날짜별 이벤트 필터링 함수
   const getEventsByDate = (date) => {
-    return events.filter(event => {
+    const filteredEvents = events.filter(event => {
       const startDate = new Date(event.start);
       const endDate = new Date(event.end);
 
@@ -581,7 +729,25 @@ const CalendarPage = () => {
       // 시간 지정 이벤트는 시작일에만 표시
       return isSameDay(date, startDate);
     });
+
+    // Todo 항목 중 해당 날짜와 일치하는 것 필터링
+    const filteredTodos = todos
+    .filter(todo => todo.showInCalendar && todo.dueDate && isSameDay(new Date(todo.dueDate), date))
+    .map(todo => ({
+      id: `todo-${todo.id}`,
+      title: `[할일] ${todo.title}`,
+      startTime: new Date(todo.dueDate),
+      endTime: new Date(todo.dueDate),
+      allDay: true,
+      color: todo.completed ? '#4caf50' : '#ff9800',
+      description: todo.description,
+      progress: todo.progress,
+      type: 'todo'
+    }));
+
+    return [...filteredEvents, ...filteredTodos];
   };
+
 
   // 날짜 클릭 시 사이드바 열기
   const handleDateClick = (date) => {
@@ -639,6 +805,24 @@ const CalendarPage = () => {
   const eventStyleGetter = (event) => {
     const backgroundColor = event.color || '#FFFFFF';
 
+    // Todo 항목
+    if (event.type === 'todo') {
+      const completed = event.original?.progress === 100;
+      return {
+        style: {
+          backgroundColor: '#FFFFFF',
+          borderRadius: '5px',
+          color: event.textColor || '#000000',
+          border: 'none',
+          opacity: event.original?.progress === 100? 0.5 : 1,
+          textDecoration: event.original?.progress === 100 ? 'line-through' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '5px'
+        }
+      };
+    }
+
     // 배경색이 흰색이면 테두리 추가
     const border = backgroundColor === '#FFFFFF' ? '1px solid #ccc' : 'none';
     const textColor = backgroundColor === '#FFFFFF' ? '#000' : '#fff';
@@ -673,14 +857,45 @@ const CalendarPage = () => {
           <div style={calendarContainerStyle}>
             <Calendar
                 localizer={localizer}
-                events={events}
+                events={getAllCalendarEvents}
                 startAccessor="start"
                 endAccessor="end"
                 style={{height: '100%'}}
                 eventPropGetter={eventStyleGetter}
-                onSelectEvent={handleOpenDialog}
-                onSelectSlot={(slotInfo) => handleOpenDialog(
-                    {slots: slotInfo, action: 'select'})}
+                onSelectEvent={(event) => {
+                  if (event.type === 'todo') {
+                    // Todo ID 추출
+                    const todoId = event.id.split('-')[1];
+                    if (todoId) {
+                      // Todo 편집 모달 열기 로직 (아래는 예시)
+                      const todo = todos.find(t => t.id === parseInt(todoId));
+                      if (todo) {
+                        setNewTodo({
+                          id: todo.id,
+                          title: todo.title,
+                          description: todo.description || '',
+                          dueDate: todo.dueDate ? new Date(todo.dueDate) : null,
+                          showInCalendar: todo.showInCalendar || false,
+                          category: todo.category ? todo.category.id : null,
+                          progress: todo.progress || 0,
+                          color: todo.color || '#000000'
+                        });
+                        setTodoModalOpen(true);
+                      }
+                    }
+                    return;
+                  }
+                  // 일반 이벤트는 기존 처리
+                  handleOpenDialog(event);
+                }}
+                onSelectSlot={(slotInfo) => {
+                  // 마우스 위치에 컨텍스트 메뉴 표시
+                  setContextMenu({
+                    x: slotInfo.box.x,
+                    y: slotInfo.box.y,
+                    slotInfo: slotInfo
+                  });
+                }}
                 onDrillDown={(date) => handleDateClick(date)} // 날짜 클릭 시 처리
                 date={currentDate}
                 onNavigate={(date) => setCurrentDate(date)}
@@ -693,7 +908,71 @@ const CalendarPage = () => {
                   previous: '<',
                   next: '>'
                 }}
+                // components 속성
+                components={{
+                  event: (props) => {
+                    const { event } = props;
+                    if (event.type === 'todo') {
+                      return (
+                          <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
+              <span
+                  onClick={(e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
+                    // Todo ID 추출
+                    const todoId = event.id.split('-')[1];
+                    if (todoId) {
+                      try {
+                        const token = localStorage.getItem('auth_token');
+                        // 현재 progress 값 토글
+                        const newProgress = event.original.progress === 100 ? 0 : 100;
+
+                        // API 직접 호출
+                        axios.put(`${API_URL}/api/todos/${todoId}/progress`,
+                            { progress: newProgress },
+                            {
+                              headers: {
+                                'Authorization': `Bearer ${token}`
+                              }
+                            }
+                        ).then(() => {
+                          // 성공 메시지 표시
+                          setSuccess(`할일 ${newProgress === 100 ? '완료' : '미완료'} 처리되었습니다`);
+                          // 1초 후 새로고침
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 1000);
+                        });
+                      } catch (error) {
+                        console.error('할일 상태 업데이트 실패:', error);
+                        setError('할일 상태 업데이트에 실패했습니다');
+                      }
+                    }
+                  }}
+                  style={{
+                    marginRight: '4px',
+                    width: '16px',
+                    height: '16px',
+                    border: '1px solid #999',
+                    borderRadius: '2px',
+                    display: 'inline-block',
+                    backgroundColor: event.original.progress === 100 ? '#4caf50' : 'white',
+                    cursor: 'pointer'
+                  }}
+              >
+                {event.original.progress === 100 &&
+                    <span style={{ color: 'white', fontSize: '12px', display: 'flex', justifyContent: 'center' }}>✓</span>
+                }
+              </span>
+                            <span style={{ color: event.original.color || '#000000' }}>{event.title}</span>
+                          </div>
+                      );
+                    }
+                    // 기본 이벤트 렌더링
+                    return <span>{event.title}</span>;
+                  }
+                }}
             />
+
           </div>
         </Paper>
 
@@ -917,6 +1196,114 @@ const CalendarPage = () => {
           </DialogActions>
         </Dialog>
 
+        {/* 할일 추가 다이얼로그 */}
+        <Dialog open={todoModalOpen} onClose={() => setTodoModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>{newTodo.id ? '할일 수정' : '새 할일'}</DialogTitle>
+          <DialogContent>
+            <TextField
+                autoFocus
+                margin="dense"
+                name="title"
+                label="제목"
+                type="text"
+                fullWidth
+                value={newTodo.title}
+                onChange={(e) => setNewTodo({...newTodo, title: e.target.value})}
+                sx={{mb: 2}}
+            />
+
+            <TextField
+                margin="dense"
+                name="description"
+                label="설명"
+                type="text"
+                fullWidth
+                multiline
+                rows={3}
+                value={newTodo.description || ''}
+                onChange={(e) => setNewTodo({...newTodo, description: e.target.value})}
+                sx={{mb: 2}}
+            />
+
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                  label="마감일"
+                  value={newTodo.dueDate}
+                  onChange={(date) => setNewTodo({...newTodo, dueDate: date})}
+                  renderInput={(params) => <TextField {...params} fullWidth sx={{mb: 2}} />}
+              />
+            </LocalizationProvider>
+
+            <FormControl fullWidth sx={{mb: 2}}>
+              <InputLabel id="todo-category-label">카테고리</InputLabel>
+              <Select
+                  labelId="todo-category-label"
+                  name="category"
+                  value={newTodo.category || ''}
+                  onChange={(e) => setNewTodo({...newTodo, category: e.target.value})}
+                  label="카테고리"
+              >
+                {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{mb: 2}}>
+              <Typography variant="subtitle2" gutterBottom>
+                진행도
+              </Typography>
+              <Slider
+                  value={newTodo.progress}
+                  onChange={(e, value) => setNewTodo({...newTodo, progress: value})}
+                  aria-labelledby="progress-slider"
+                  valueLabelDisplay="auto"
+                  step={5}
+                  marks
+                  min={0}
+                  max={100}
+              />
+            </Box>
+
+            <Box sx={{mb: 2}}>
+              <Typography variant="subtitle2" gutterBottom>
+                색상 (글자 색상)
+              </Typography>
+              <TextField
+                  name="color"
+                  type="color"
+                  value={newTodo.color}
+                  onChange={(e) => setNewTodo({...newTodo, color: e.target.value})}
+                  sx={{width: '100%'}}
+              />
+            </Box>
+
+            <FormControlLabel
+                control={
+                  <Switch
+                      checked={newTodo.showInCalendar}
+                      onChange={(e) => setNewTodo({...newTodo, showInCalendar: e.target.checked})}
+                      name="showInCalendar"
+                  />
+                }
+                label="캘린더에 표시"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setTodoModalOpen(false)}>취소</Button>
+            <Button
+                onClick={newTodo.id ? handleUpdateTodo : handleSaveTodo}
+                variant="contained"
+                color="primary"
+                disabled={!newTodo.title}
+            >
+              {loading ? <CircularProgress size={24}/> : (newTodo.id ? '수정' : '추가')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/* 알림 메시지 */}
         <Snackbar open={!!error} autoHideDuration={6000}
                   onClose={() => setError('')}>
@@ -933,6 +1320,62 @@ const CalendarPage = () => {
             {success}
           </Alert>
         </Snackbar>
+        {/* 일정/할일 컨텍스트 메뉴 */}
+        <Popover
+            open={Boolean(contextMenu)}
+            onClose={() => setContextMenu(null)}
+            anchorReference="anchorPosition"
+            anchorPosition={
+              contextMenu ? { top: contextMenu.y, left: contextMenu.x } : undefined
+            }
+            PaperProps={{ sx: { boxShadow: 3, borderRadius: 1 } }}
+        >
+          <List sx={{ p: 0 }}>
+            <ListItem
+                button
+                onClick={() => {
+                  setContextMenu(null);
+                  if (contextMenu) {
+                    handleOpenDialog({ slots: contextMenu.slotInfo, action: 'select' });
+                  }
+                }}
+                sx={{ py: 1 }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <CalendarMonthIcon color="primary" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="일정 추가" primaryTypographyProps={{ fontSize: 14 }} />
+            </ListItem>
+            <Divider />
+            <ListItem
+                button
+                onClick={() => {
+                  setContextMenu(null);
+                  // 할일 추가 모달 열기
+                  if (contextMenu) {
+                    // 새 할일 데이터 초기화
+                    setNewTodo({
+                      id: null, // id를 명시적으로 null로 설정하여 새 할일임을 표시
+                      title: '',
+                      description: '',
+                      dueDate: contextMenu.slotInfo.start,
+                      showInCalendar: true,
+                      category: categories.find(cat => cat.name === '개인')?.id || null,
+                      progress: 0,
+                      color: '#000000'
+                    });
+                    setTodoModalOpen(true);
+                  }
+                }}
+                sx={{ py: 1 }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <ChecklistIcon color="secondary" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="할 일 추가" primaryTypographyProps={{ fontSize: 14 }} />
+            </ListItem>
+          </List>
+        </Popover>
       </Box>
   );
 };
