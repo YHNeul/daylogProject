@@ -45,9 +45,8 @@ import {useAuth} from '../contexts/AuthContext';
 // 실제 페이지 컴포넌트 임포트
 import CalendarPage from './CalendarPage';
 import TodoPage from '../pages/TodoPage';
+import DiaryPage from '../pages/DiaryPage';
 // 구현되지 않은 페이지 임시 컴포넌트
-const DiaryPage = () => <Box p={3}><Typography
-    variant="h4">다이어리</Typography></Box>;
 const ProfilePage = () => <Box p={3}><Typography
     variant="h4">프로필</Typography></Box>;
 

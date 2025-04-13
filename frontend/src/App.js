@@ -21,6 +21,7 @@ import {AuthProvider} from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import {CategoryProvider} from './contexts/CategoryContext';
 import {TodoProvider} from './contexts/TodoContext';
+import {DiaryProvider} from './contexts/DiaryContext';
 
 const theme = createTheme({
   palette: {
@@ -43,6 +44,7 @@ function App() {
         <AuthProvider>
           <CategoryProvider>
             <TodoProvider>
+              <DiaryProvider>
             <Router>
               <Routes>
                 <Route path="/login" element={<Login/>}/>
@@ -65,6 +67,7 @@ function App() {
                 <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
               </Routes>
             </Router>
+              </DiaryProvider>
             </TodoProvider>
           </CategoryProvider>
         </AuthProvider>
