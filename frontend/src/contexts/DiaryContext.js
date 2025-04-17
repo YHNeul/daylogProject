@@ -134,21 +134,16 @@ export function DiaryProvider({ children }) {
           diaryData.date : new Date(diaryData.date || Date.now());
       formData.append('date', dateValue.toISOString());
 
-      // JSON 데이터 추가
-      formData.append('title', diaryData.title);
-      formData.append('content', diaryData.content);
-      formData.append('date', diaryData.date.toISOString());
-
       // 관련 일정 및 할일 ID 추가
       if (diaryData.relatedEvents && diaryData.relatedEvents.length > 0) {
-        diaryData.relatedEvents.forEach((eventId, index) => {
-          formData.append(`relatedEvents[${index}]`, eventId);
+        diaryData.relatedEvents.forEach(eventId => {
+          formData.append('relatedEvents', eventId);
         });
       }
 
       if (diaryData.relatedTodos && diaryData.relatedTodos.length > 0) {
-        diaryData.relatedTodos.forEach((todoId, index) => {
-          formData.append(`relatedTodos[${index}]`, todoId);
+        diaryData.relatedTodos.forEach(todoId => {
+          formData.append('relatedTodos', todoId);
         });
       }
 
@@ -159,13 +154,12 @@ export function DiaryProvider({ children }) {
 
       // 이미지 삭제 플래그
       if (diaryData.removeImage) {
-        formData.append('removeImage', true);
+        formData.append('removeImage', 'true');
       }
 
       const response = await axios.put(`${API_URL}/api/diaries/${id}`, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          'Authorization': `Bearer ${token}`
         }
       });
 

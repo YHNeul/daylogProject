@@ -139,7 +139,7 @@ public class DiaryService {
     diary.setTitle(requestDTO.getTitle());
     diary.setContent(requestDTO.getContent());
 
-    // 날짜 필드 명시적 설정 (추가)
+    // 날짜 필드 명시적 설정
     if (requestDTO.getDate() != null) {
       diary.setDate(requestDTO.getDate());
     } else {

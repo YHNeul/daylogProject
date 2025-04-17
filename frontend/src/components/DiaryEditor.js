@@ -201,8 +201,6 @@ const DiaryEditor = ({
 
   // 다이어리 저장
   const handleSave = async () => {
-    if (!validateForm()) return;
-
     try {
       setSaveLoading(true);
 

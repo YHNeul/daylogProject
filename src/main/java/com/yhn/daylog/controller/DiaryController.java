@@ -70,13 +70,13 @@ public class DiaryController {
   @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DiaryDTO> updateDiary(
       @PathVariable Long id,
-      @RequestPart("title") String title,
-      @RequestPart("content") String content,
-      @RequestPart("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date,
-      @RequestPart(value = "relatedEvents", required = false) List<Long> relatedEvents,
-      @RequestPart(value = "relatedTodos", required = false) List<Long> relatedTodos,
-      @RequestPart(value = "removeImage", required = false) Boolean removeImage,
-      @RequestPart(value = "image", required = false) MultipartFile image,
+      @RequestParam("title") String title,
+      @RequestParam("content") String content,
+      @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date,
+      @RequestParam(value = "relatedEvents", required = false) List<Long> relatedEvents,
+      @RequestParam(value = "relatedTodos", required = false) List<Long> relatedTodos,
+      @RequestParam(value = "removeImage", required = false) Boolean removeImage,
+      @RequestParam(value = "image", required = false) MultipartFile image,
       Authentication authentication) {
 
     DiaryRequestDTO requestDTO = DiaryRequestDTO.builder()
