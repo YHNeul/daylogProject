@@ -27,6 +27,10 @@ export function DiaryProvider({ children }) {
         }
       });
 
+      // 로깅 추가
+      console.log('받은 다이어리 목록:', response.data);
+      console.log('이미지 URL 샘플:', response.data[0]?.imageUrl);
+
       // 날짜 기준 내림차순 정렬 (최신순)
       const sortedDiaries = response.data.sort((a, b) =>
           new Date(b.date) - new Date(a.date)

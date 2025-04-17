@@ -219,6 +219,7 @@ public class DiaryService {
   }
 
   // 이미지 저장 메소드
+  // 이미지 저장 메소드
   private String saveImage(MultipartFile file) {
     try {
       // 업로드 디렉토리 경로 확인 및 생성
@@ -235,8 +236,9 @@ public class DiaryService {
 
       // 고유 파일명 생성
       String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-      String fileExtension = StringUtils.getFilenameExtension(originalFilename);
-      String fileName = UUID.randomUUID() + "." + fileExtension;
+      String fileExtension = originalFilename.contains(".") ?
+          originalFilename.substring(originalFilename.lastIndexOf('.')) : "";
+      String fileName = UUID.randomUUID() + fileExtension;
 
       // 파일 저장
       Path filePath = uploadPath.resolve(fileName);

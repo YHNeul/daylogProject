@@ -315,7 +315,7 @@ const DiaryEditor = ({
                 {imagePreview ? (
                     <Box sx={{ position: 'relative', mb: 2 }}>
                       <img
-                          src={imagePreview}
+                          src={imagePreview.startsWith('http') ? imagePreview : `http://localhost:8083${imagePreview}`}
                           alt="미리보기"
                           style={{ width: '100%', borderRadius: '4px' }}
                       />
