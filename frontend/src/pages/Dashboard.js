@@ -46,9 +46,8 @@ import {useAuth} from '../contexts/AuthContext';
 import CalendarPage from './CalendarPage';
 import TodoPage from '../pages/TodoPage';
 import DiaryPage from '../pages/DiaryPage';
+import ProfilePage from './ProfilePage';
 // 구현되지 않은 페이지 임시 컴포넌트
-const ProfilePage = () => <Box p={3}><Typography
-    variant="h4">프로필</Typography></Box>;
 
 const drawerWidth = 240;
 

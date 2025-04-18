@@ -95,8 +95,24 @@ export function AuthProvider({ children }) {
     }
 
     async function logout() {
-        localStorage.removeItem(TOKEN_KEY);
-        setCurrentUser(null);
+        try {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (token) {
+                // 서버에 로그아웃 요청 보내기 (선택사항)
+                await axios.post(`${API_URL}/api/auth/logout`, {}, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            }
+        } catch (error) {
+            // 서버 요청 실패 시에도 로컬 로그아웃은 진행
+            console.error('로그아웃 요청 실패:', error);
+        } finally {
+
+            localStorage.removeItem(TOKEN_KEY);
+            setCurrentUser(null);
+        }
     }
 
     async function forgotPassword(email) {
@@ -135,6 +151,10 @@ export function AuthProvider({ children }) {
         }
     }
 
+    function updateCurrentUser(userData) {
+        setCurrentUser(userData);
+    }
+
     const value = {
         currentUser,
         loading,
@@ -144,7 +164,8 @@ export function AuthProvider({ children }) {
         register,
         forgotPassword,
         resetPassword,
-        verifyEmail
+        verifyEmail,
+        updateCurrentUser
     };
 
     return (
