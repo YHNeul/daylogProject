@@ -9,7 +9,8 @@ COPY target/*.jar app.jar
 RUN mkdir -p /app/uploads/images
 
 # 볼륨 설정
-VOLUME /app/uploads
+# VOLUME /app/uploads
+# railway에서는 VOLUME 사용 불가
 
 EXPOSE 8083
 
