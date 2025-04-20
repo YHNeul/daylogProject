@@ -1,17 +1,12 @@
-FROM openjdk:17-jdk-slim
-
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# 빌드된 JAR 파일 복사
-COPY target/*.jar app.jar
-
-# 업로드 디렉토리 생성
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p /app/uploads/images
-
-# 볼륨 설정
-# VOLUME /app/uploads
-# railway에서는 VOLUME 사용 불가
-
 EXPOSE 8083
-
 ENTRYPOINT ["java", "-jar", "app.jar"]
