@@ -67,7 +67,7 @@ const DiaryEditor = ({
   const [loading, setLoading] = useState(false);
 
   const { addDiary, updateDiary } = useDiaries();
-  const API_URL = 'http://localhost:8083';
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     // 초기 데이터 설정

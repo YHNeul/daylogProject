@@ -35,7 +35,7 @@ const EventDetailsSidebar = ({
 
   // TodoContext에서 함수 가져오기
   const { updateTodoProgress } = useTodos();
-  const API_URL = 'http://localhost:8083';
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 // 이벤트 정렬: 일정 먼저, 완료된 할일은 맨 아래로
   const sortedEvents = useMemo(() => {

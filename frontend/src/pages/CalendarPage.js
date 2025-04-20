@@ -67,7 +67,7 @@ const CalendarPage = () => {
 
   // eslint-disable-next-line no-unused-vars
   const {currentUser} = useAuth();
-  const API_URL = 'http://localhost:8083';
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     fetchEvents();

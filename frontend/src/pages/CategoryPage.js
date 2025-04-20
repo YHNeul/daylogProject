@@ -21,7 +21,7 @@ const CategoryPage = () => {
   const [success, setSuccess] = useState('');
 
   const {currentUser} = useAuth();
-  const API_URL = 'http://localhost:8083';
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     fetchCategories();

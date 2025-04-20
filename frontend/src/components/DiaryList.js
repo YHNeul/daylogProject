@@ -123,7 +123,7 @@ const DiaryList = ({ diaries, onEdit, onUpdateSuccess }) => {
                       <CardMedia
                           component="img"
                           height="140"
-                          image={`http://localhost:8083${diary.imageUrl}`}
+                          image={diary.imageUrl ? `${process.env.REACT_APP_API_URL || ''}${diary.imageUrl}` : ''}
                           alt={diary.title}
                       />
                   ) : (
@@ -243,7 +243,7 @@ const DiaryList = ({ diaries, onEdit, onUpdateSuccess }) => {
                   {viewDiary.imageUrl && (
                       <Box sx={{ mb: 2, textAlign: 'center' }}>
                         <img
-                            src={`http://localhost:8083${viewDiary.imageUrl}`}
+                            src={viewDiary.imageUrl ? `${process.env.REACT_APP_API_URL || ''}${viewDiary.imageUrl}` : ''}
                             alt={viewDiary.title}
                             style={{ maxWidth: '100%', maxHeight: '300px' }}
                         />

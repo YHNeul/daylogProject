@@ -34,7 +34,7 @@ const ProfilePage = () => {
 
   const { currentUser, logout, updateCurrentUser } = useAuth();
   const navigate = useNavigate();
-  const API_URL = 'http://localhost:8083';
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     if (currentUser) {
