@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .  # 백엔드는 루트 디렉토리에서 빌드
+      dockerfile: Dockerfile
+    container_name: daylog-backend
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/railway?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=zQRaNONtpjImrKlUZcXzjdpFepHOmWaB
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend  # 프론트엔드는 frontend 디렉토리에서 빌드
+      dockerfile: Dockerfile
+    container_name: daylog-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  db:
+    image: mysql:8.0
+    container_name: daylog-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=railway
+      - MYSQL_ROOT_PASSWORD=zQRaNONtpjImrKlUZcXzjdpFepHOmWaB
+    volumes:
+      - dbdata:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  dbdata:
+  uploads:
