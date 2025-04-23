@@ -79,7 +79,7 @@ const ProfilePage = () => {
         updateData.password = userInfo.password;
       }
 
-      const response = await axios.put(`${API_URL}/api/users/me`, updateData, {
+      const response = await axios.put(`${API_URL}/users/me`, updateData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,7 +117,7 @@ const ProfilePage = () => {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
 
-      await axios.delete(`${API_URL}/api/users/me`, {
+      await axios.delete(`${API_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
                 }
             };
 
-            const response = await axios.get(`${API_URL}/api/users/me`, config);
+            const response = await axios.get(`${API_URL}/users/me`, config);
             if (response.status === 200) {
                 setCurrentUser(response.data);
             }
@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
     async function register(email, password, name) {
         try {
             setError('');
-            const response = await axios.post(`${API_URL}/api/auth/signup`, {
+            const response = await axios.post(`${API_URL}/auth/signup`, {
                 email,
                 password,
                 name
@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
     async function login(email, password) {
         try {
             setError('');
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
+            const response = await axios.post(`${API_URL}/auth/login`, {
                 email,
                 password
             });
@@ -99,7 +99,7 @@ export function AuthProvider({ children }) {
             const token = localStorage.getItem(TOKEN_KEY);
             if (token) {
                 // 서버에 로그아웃 요청 보내기 (선택사항)
-                await axios.post(`${API_URL}/api/auth/logout`, {}, {
+                await axios.post(`${API_URL}/auth/logout`, {}, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -118,7 +118,7 @@ export function AuthProvider({ children }) {
     async function forgotPassword(email) {
         try {
             setError('');
-            const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
+            const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
             return response.data;
         } catch (error) {
             setError(error.response?.data?.message || '비밀번호 재설정 요청 중 오류가 발생했습니다.');
@@ -129,7 +129,7 @@ export function AuthProvider({ children }) {
     async function resetPassword(token, password) {
         try {
             setError('');
-            const response = await axios.post(`${API_URL}/api/auth/reset-password`, {
+            const response = await axios.post(`${API_URL}/auth/reset-password`, {
                 token,
                 password
             });
@@ -143,7 +143,7 @@ export function AuthProvider({ children }) {
     async function verifyEmail(token) {
         try {
             setError('');
-            const response = await axios.get(`${API_URL}/api/auth/verify-email?token=${token}`);
+            const response = await axios.get(`${API_URL}/auth/verify-email?token=${token}`);
             return response.data;
         } catch (error) {
             setError(error.response?.data?.message || '이메일 인증 중 오류가 발생했습니다.');

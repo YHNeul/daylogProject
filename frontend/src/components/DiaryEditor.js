@@ -104,10 +104,10 @@ const DiaryEditor = ({
       };
 
       // 이벤트 데이터 가져오기
-      const eventsResponse = await axios.get(`${API_URL}/api/events`, { headers });
+      const eventsResponse = await axios.get(`${API_URL}/events`, { headers });
 
       // 할일 데이터 가져오기
-      const todosResponse = await axios.get(`${API_URL}/api/todos`, { headers });
+      const todosResponse = await axios.get(`${API_URL}/todos`, { headers });
 
       setEvents(eventsResponse.data);
       setTodos(todosResponse.data);

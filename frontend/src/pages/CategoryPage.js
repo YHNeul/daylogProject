@@ -31,7 +31,7 @@ const CategoryPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get(`${API_URL}/api/categories`, {
+      const response = await axios.get(`${API_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -74,7 +74,7 @@ const CategoryPage = () => {
       const token = localStorage.getItem('auth_token');
 
       if (editMode) {
-        await axios.put(`${API_URL}/api/categories/${currentCategory.id}`,
+        await axios.put(`${API_URL}/categories/${currentCategory.id}`,
             currentCategory, {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -82,7 +82,7 @@ const CategoryPage = () => {
             });
         setSuccess('카테고리가 성공적으로 수정되었습니다');
       } else {
-        await axios.post(`${API_URL}/api/categories`, currentCategory, {
+        await axios.post(`${API_URL}/categories`, currentCategory, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -106,7 +106,7 @@ const CategoryPage = () => {
         setLoading(true);
         const token = localStorage.getItem('auth_token');
 
-        await axios.delete(`${API_URL}/api/categories/${id}`, {
+        await axios.delete(`${API_URL}/categories/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -33,7 +33,7 @@ export function TodoProvider({ children }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get(`${API_URL}/api/todos`, {
+      const response = await axios.get(`${API_URL}/todos`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -74,7 +74,7 @@ export function TodoProvider({ children }) {
         todoData.color = '#000000';
       }
 
-      const response = await axios.post(`${API_URL}/api/todos`, todoData, {
+      const response = await axios.post(`${API_URL}/todos`, todoData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -111,7 +111,7 @@ export function TodoProvider({ children }) {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
 
-      const response = await axios.put(`${API_URL}/api/todos/${id}`, todoData, {
+      const response = await axios.put(`${API_URL}/todos/${id}`, todoData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -150,7 +150,7 @@ export function TodoProvider({ children }) {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
 
-      const response = await axios.put(`${API_URL}/api/todos/${id}/progress`,
+      const response = await axios.put(`${API_URL}/todos/${id}/progress`,
           { progress },
           {
             headers: {
@@ -192,7 +192,7 @@ export function TodoProvider({ children }) {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
 
-      await axios.delete(`${API_URL}/api/todos/${id}`, {
+      await axios.delete(`${API_URL}/todos/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

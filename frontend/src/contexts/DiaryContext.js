@@ -21,7 +21,7 @@ export function DiaryProvider({ children }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get(`${API_URL}/api/diaries`, {
+      const response = await axios.get(`${API_URL}/diaries`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -49,7 +49,7 @@ export function DiaryProvider({ children }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get(`${API_URL}/api/diaries/${id}`, {
+      const response = await axios.get(`${API_URL}/diaries/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -104,7 +104,7 @@ export function DiaryProvider({ children }) {
         formData.append('image', diaryData.image);
       }
 
-      const response = await axios.post(`${API_URL}/api/diaries`, formData, {
+      const response = await axios.post(`${API_URL}/diaries`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           // Content-Type 헤더를 자동으로 설정하도록 생략
@@ -161,7 +161,7 @@ export function DiaryProvider({ children }) {
         formData.append('removeImage', 'true');
       }
 
-      const response = await axios.put(`${API_URL}/api/diaries/${id}`, formData, {
+      const response = await axios.put(`${API_URL}/diaries/${id}`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -186,7 +186,7 @@ export function DiaryProvider({ children }) {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
 
-      await axios.delete(`${API_URL}/api/diaries/${id}`, {
+      await axios.delete(`${API_URL}/diaries/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -214,7 +214,7 @@ export function DiaryProvider({ children }) {
           ? date.toISOString().split('T')[0]
           : new Date(date).toISOString().split('T')[0];
 
-      const response = await axios.get(`${API_URL}/api/diaries/date/${formattedDate}`, {
+      const response = await axios.get(`${API_URL}/diaries/date/${formattedDate}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

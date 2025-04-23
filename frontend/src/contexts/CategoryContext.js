@@ -22,7 +22,7 @@ export function CategoryProvider({ children }) {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const response = await axios.get(`${API_URL}/api/categories`, {
+            const response = await axios.get(`${API_URL}/categories`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -57,7 +57,7 @@ export function CategoryProvider({ children }) {
     const handleCategoryVisibilityChange = async (categoryId, isVisible) => {
         try {
             const token = localStorage.getItem('auth_token');
-            await axios.put(`${API_URL}/api/categories/${categoryId}/visibility`,
+            await axios.put(`${API_URL}/categories/${categoryId}/visibility`,
                 { visible: isVisible },
                 {
                     headers: {
@@ -94,7 +94,7 @@ export function CategoryProvider({ children }) {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
 
-            const response = await axios.post(`${API_URL}/api/categories`,
+            const response = await axios.post(`${API_URL}/categories`,
                 { name },
                 {
                     headers: {
@@ -128,7 +128,7 @@ export function CategoryProvider({ children }) {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
 
-            const response = await axios.put(`${API_URL}/api/categories/${id}`,
+            const response = await axios.put(`${API_URL}/categories/${id}`,
                 { name },
                 {
                     headers: {
@@ -159,7 +159,7 @@ export function CategoryProvider({ children }) {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
 
-            await axios.delete(`${API_URL}/api/categories/${id}`, {
+            await axios.delete(`${API_URL}/categories/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

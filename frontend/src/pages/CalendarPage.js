@@ -80,7 +80,7 @@ const CalendarPage = () => {
       const token = localStorage.getItem('auth_token');
 
       // 이벤트 데이터 가져오기
-      const response = await axios.get(`${API_URL}/api/events`, {
+      const response = await axios.get(`${API_URL}/events`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -591,14 +591,14 @@ const CalendarPage = () => {
       delete eventData.end;
 
       if (isEditMode) {
-        await axios.put(`${API_URL}/api/events/${currentEvent.id}`, eventData, {
+        await axios.put(`${API_URL}/events/${currentEvent.id}`, eventData, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         setSuccess('이벤트가 성공적으로 수정되었습니다');
       } else {
-        await axios.post(`${API_URL}/api/events`, eventData, {
+        await axios.post(`${API_URL}/events`, eventData, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -644,7 +644,7 @@ const CalendarPage = () => {
         category: newTodo.category ? { id: newTodo.category } : null
       };
 
-      await axios.post(`${API_URL}/api/todos`, todoData, {
+      await axios.post(`${API_URL}/todos`, todoData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -678,14 +678,14 @@ const CalendarPage = () => {
         category: newTodo.category ? { id: newTodo.category } : null
       };
 
-      await axios.put(`${API_URL}/api/todos/${newTodo.id}`, todoData, {
+      await axios.put(`${API_URL}/todos/${newTodo.id}`, todoData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       // 업데이트된 Todo 목록을 가져와서 캘린더에 즉시 반영
-      const { data: todos } = await axios.get(`${API_URL}/api/todos`, {
+      const { data: todos } = await axios.get(`${API_URL}/todos`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -783,7 +783,7 @@ const CalendarPage = () => {
         setLoading(true);
         const token = localStorage.getItem('auth_token');
 
-        await axios.delete(`${API_URL}/api/events/${currentEvent.id}`, {
+        await axios.delete(`${API_URL}/events/${currentEvent.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -927,7 +927,7 @@ const CalendarPage = () => {
                         const newProgress = event.original.progress === 100 ? 0 : 100;
 
                         // API 직접 호출
-                        axios.put(`${API_URL}/api/todos/${todoId}/progress`,
+                        axios.put(`${API_URL}/todos/${todoId}/progress`,
                             { progress: newProgress },
                             {
                               headers: {
