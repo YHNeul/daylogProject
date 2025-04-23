@@ -51,9 +51,11 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    // configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-    configuration.setAllowedOrigins(Arrays.asList("*"));
-    configuration.setAllowedOrigins(Arrays.asList("https://daylog-frontend.onrender.com"));
+    configuration.setAllowedOrigins(Arrays.asList(
+        "https://daylogproject.onrender.com",
+        "https://daylog-frontend.onrender.com",
+        "http://localhost:3000"
+    ));
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(
         Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
