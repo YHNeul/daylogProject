@@ -8,5 +8,6 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p /app/uploads/images
+VOLUME ["/app/uploads"]
 EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "app.jar"]
